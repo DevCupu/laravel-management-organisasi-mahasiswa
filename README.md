@@ -17,9 +17,8 @@
 
 Aplikasi masih dalam tahap pengembangan awal. Fitur-fitur utama sedang dalam proses implementasi dan akan terus diperbarui.
 
-```markdown
 ![SS AWAL](./siormawa.png)
-```
+
 ## Lisensi
 
 Aplikasi ini direncanakan akan menggunakan lisensi open source. Detail lisensi akan diumumkan setelah pengembangan mencapai tahap stabil.
