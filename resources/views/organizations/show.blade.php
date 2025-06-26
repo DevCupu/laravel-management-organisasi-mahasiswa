@@ -108,10 +108,10 @@
                                     <i class="fas fa-users mr-2 text-blue-600"></i>
                                     Anggota Terbaru
                                 </h3>
-                                <a href="{{ route('organizations.members', $organization) }}"
-                                    class="text-sm text-blue-600 hover:text-blue-500">
-                                    Lihat Semua
-                                </a>
+                                @if (Route::has('organizations.members'))
+                                    <a href="{{ route('organizations.members', $organization->id) }}">...</a>
+                                @endif
+
                             </div>
                             <div class="space-y-3">
                                 @foreach ($organization->activeMembers->take(5) as $member)
@@ -164,12 +164,14 @@
                                                 <h4 class="text-sm font-medium text-gray-900">{{ $event->title }}</h4>
                                                 <p class="text-sm text-gray-500 mt-1">
                                                     <i class="fas fa-calendar mr-1"></i>
-                                                    {{ $event->event_date->format('d M Y') }}
+                                                    {{ \Carbon\Carbon::parse($event->event_date)->format('d M Y') }}
+
                                                     @if ($event->start_time)
                                                         <i class="fas fa-clock ml-3 mr-1"></i>
-                                                        {{ $event->start_time->format('H:i') }} WIB
+                                                        {{ \Carbon\Carbon::parse($event->start_time)->format('H:i') }} WIB
                                                     @endif
                                                 </p>
+
                                                 @if ($event->location)
                                                     <p class="text-sm text-gray-500">
                                                         <i class="fas fa-map-marker-alt mr-1"></i>

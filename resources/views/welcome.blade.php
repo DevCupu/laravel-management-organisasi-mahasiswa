@@ -5,12 +5,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name', 'SIORMAWA') }} - Sistem Informasi Organisasi Kemahasiswaan</title>
+    <link rel="icon" type="image/png" href="{{ asset('education.png') }}">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href={{"../css/style.css"}}>
+    <link rel="stylesheet" href={{ '../css/style.css' }}>
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -23,7 +24,8 @@
                 <div class="flex items-center">
                     <div class="flex-shrink-0 flex items-center space-x-3">
                         <!-- Logo Icon (SVG or Image) -->
-                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
+                        <div
+                            class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
                             <!-- Ganti src berikut dengan path gambar lokal Anda -->
                             <img src="{{ asset('unm.png') }}" alt="Logo SIORMAWA" class="w-full h-full object-cover" />
                         </div>

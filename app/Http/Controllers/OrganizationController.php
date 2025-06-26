@@ -14,7 +14,7 @@ class OrganizationController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Organization::withCount(['activeMembers']);
+        $query = Organization::withCount(['activeMembers', 'events', 'documents']);
 
         // Search functionality
         if ($request->filled('search')) {
@@ -108,7 +108,7 @@ class OrganizationController extends Controller
      */
     public function show(Organization $organization)
     {
-        $organization->loadCount(['activeMembers']);
+        $organization->loadCount(['activeMembers', 'events', 'documents']);
         $organization->load([
             'activeMembers' => function ($query) {
                 $query->latest()->take(5);

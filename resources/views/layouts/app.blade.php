@@ -33,22 +33,57 @@
                             class="@if (request()->routeIs('dashboard')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
                             Dashboard
                         </a>
-                        <a href="{{ route('organizations.index') }}"
-                            class="@if (request()->routeIs('organizations.*')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
-                            Organisasi
-                        </a>
-                        <a href="{{ route('members.index') }}"
-                            class="@if (request()->routeIs('members.*')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
-                            Anggota
-                        </a>
-                        {{-- <a href="{{ route('events.index') }}"
-                            class="@if (request()->routeIs('events.*')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
-                            Kegiatan
-                        </a> --}}
-                        {{-- <a href="{{ route('documents.index') }}"
-                            class="@if (request()->routeIs('documents.*')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
-                            Dokumen
-                        </a> --}}
+
+                        @if (auth()->user()->canManageAllOrganizations())
+                            <!-- Admin Menu -->
+                            <a href="{{ route('organizations.index') }}"
+                                class="@if (request()->routeIs('organizations.*')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
+                                Organisasi
+                            </a>
+                            <a href="{{ route('users.index') }}"
+                                class="@if (request()->routeIs('users.*')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
+                                Users
+                            </a>
+                        @endif
+
+                        @if (auth()->user()->isOrganizationAdmin() || auth()->user()->canManageAllOrganizations())
+                            <!-- Organization Admin Menu -->
+                            <a href="{{ route('members.index') }}"
+                                class="@if (request()->routeIs('members.*')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
+                                Anggota
+                            </a>
+                            <a href="{{ route('events.index') }}"
+                                class="@if (request()->routeIs('events.*')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
+                                Kegiatan
+                            </a>
+                            <a href="{{ route('documents.index') }}"
+                                class="@if (request()->routeIs('documents.*')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
+                                Dokumen
+                            </a>
+                        @endif
+
+                        @if (auth()->user()->isMember())
+                            <!-- Member Menu -->
+                            @if (auth()->user()->organization)
+                                <a href="{{ route('organizations.show', auth()->user()->organization) }}"
+                                    class="@if (request()->routeIs('organizations.show')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
+                                    Organisasi Saya
+                                </a>
+                                <a href="{{ route('events.index', ['organization_id' => auth()->user()->organization_id]) }}"
+                                    class="@if (request()->routeIs('events.*')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
+                                    Kegiatan
+                                </a>
+                                <a href="{{ route('documents.index', ['organization_id' => auth()->user()->organization_id]) }}"
+                                    class="@if (request()->routeIs('documents.*')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
+                                    Dokumen
+                                </a>
+                            @else
+                                <a href="{{ route('organizations.index') }}"
+                                    class="@if (request()->routeIs('organizations.*')) text-gray-900 @else text-gray-500 hover:text-blue-600 @endif px-3 py-2 text-sm font-medium">
+                                    Organisasi
+                                </a>
+                            @endif
+                        @endif
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -68,15 +103,20 @@
                                 src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=3b82f6&color=fff"
                                 alt="{{ Auth::user()->name }}">
                             <span class="ml-2 text-gray-700 hidden md:block">{{ Auth::user()->name }}</span>
+                            <span
+                                class="ml-1 text-xs text-gray-500 hidden md:block">({{ Auth::user()->role_label }})</span>
                         </button>
 
                         <div id="userDropdown"
                             class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <div class="px-4 py-2 text-xs text-gray-500 border-b">
+                                {{ Auth::user()->role_label }}
+                                @if (Auth::user()->organization)
+                                    <br>{{ Auth::user()->organization->acronym }}
+                                @endif
+                            </div>
+                            <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <i class="fas fa-user mr-2"></i>Profil
-                            </a>
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i class="fas fa-cog mr-2"></i>Pengaturan
                             </a>
                             <div class="border-t border-gray-100"></div>
                             <form method="POST" action="{{ route('logout') }}">
@@ -130,7 +170,7 @@
 
         // Close dropdown when clicking outside
         window.onclick = function(event) {
-            if (!event.target.matches('.rounded-full')) {
+            if (!event.target.matches('.rounded-full') && !event.target.closest('.relative')) {
                 var dropdown = document.getElementById('userDropdown');
                 if (!dropdown.classList.contains('hidden')) {
                     dropdown.classList.add('hidden');

@@ -15,12 +15,14 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create admin user
+        // Create single admin user
         $admin = User::create([
             'name' => 'Admin SIORMAWA',
             'email' => 'admin@siormawa.ac.id',
             'password' => Hash::make('password'),
+            'role' => 'admin',
             'email_verified_at' => now(),
+            'is_active' => true,
         ]);
 
         // Create sample organizations
@@ -54,23 +56,25 @@ class DatabaseSeeder extends Seeder
                 'status' => 'active',
                 'email' => 'ukmseni@university.ac.id',
             ],
-            [
-                'name' => 'Palang Merah Remaja',
-                'acronym' => 'PMR',
-                'category' => 'ormawa',
-                'description' => 'Organisasi kemanusiaan yang bergerak dalam bidang kesehatan dan kebencanaan.',
-                'established_date' => '2017-11-20',
-                'status' => 'active',
-                'email' => 'pmr@university.ac.id',
-            ],
         ];
 
         foreach ($organizations as $orgData) {
             $org = Organization::create($orgData);
 
+            // Create organization admin for each organization
+            $orgAdmin = User::create([
+                'name' => 'Admin ' . $org->acronym,
+                'email' => strtolower($org->acronym) . '.admin@university.ac.id',
+                'password' => Hash::make('password'),
+                'role' => 'organization_admin',
+                'organization_id' => $org->id,
+                'email_verified_at' => now(),
+                'is_active' => true,
+            ]);
+
             // Create sample members for each organization
-            for ($i = 1; $i <= rand(15, 30); $i++) {
-                Member::create([
+            for ($i = 1; $i <= rand(10, 20); $i++) {
+                $member = Member::create([
                     'organization_id' => $org->id,
                     'student_id' => '2021' . str_pad($org->id * 100 + $i, 3, '0', STR_PAD_LEFT),
                     'name' => fake()->name(),
@@ -80,73 +84,87 @@ class DatabaseSeeder extends Seeder
                     'join_date' => fake()->dateTimeBetween('-2 years', 'now'),
                     'status' => fake()->randomElement(['active', 'active', 'active', 'inactive']), // 75% active
                 ]);
+
+                // Create user account for some members (50% chance)
+                if (rand(1, 2) === 1) {
+                    User::create([
+                        'name' => $member->name,
+                        'email' => $member->email,
+                        'password' => Hash::make('password'),
+                        'role' => 'member',
+                        'organization_id' => $org->id,
+                        'student_id' => $member->student_id,
+                        'phone' => $member->phone,
+                        'email_verified_at' => now(),
+                        'is_active' => true,
+                    ]);
+                }
             }
 
-            //     // Create sample events for each organization
-            //     for ($i = 1; $i <= rand(3, 8); $i++) {
-            //         Event::create([
-            //             'organization_id' => $org->id,
-            //             'title' => fake()->sentence(4),
-            //             'description' => fake()->paragraph(),
-            //             'category' => fake()->randomElement(['Workshop', 'Seminar', 'Kompetisi', 'Sosial', 'Rapat']),
-            //             'event_date' => fake()->dateTimeBetween('-1 month', '+3 months'),
-            //             'start_time' => fake()->time(),
-            //             'end_time' => fake()->time(),
-            //             'location' => fake()->address(),
-            //             'max_participants' => rand(20, 100),
-            //             'current_participants' => rand(0, 50),
-            //             'status' => fake()->randomElement(['upcoming', 'completed', 'ongoing']),
-            //             'registration_deadline' => fake()->dateTimeBetween('now', '+2 months'),
-            //             'created_by' => $admin->id,
-            //         ]);
-            //     }
+            // Create sample events for each organization
+            for ($i = 1; $i <= rand(3, 8); $i++) {
+                Event::create([
+                    'organization_id' => $org->id,
+                    'title' => fake()->sentence(4),
+                    'description' => fake()->paragraph(),
+                    'category' => fake()->randomElement(['Workshop', 'Seminar', 'Kompetisi', 'Sosial', 'Rapat']),
+                    'event_date' => fake()->dateTimeBetween('-1 month', '+3 months'),
+                    'start_time' => fake()->time(),
+                    'end_time' => fake()->time(),
+                    'location' => fake()->address(),
+                    'max_participants' => rand(20, 100),
+                    'current_participants' => rand(0, 50),
+                    'status' => fake()->randomElement(['upcoming', 'completed', 'ongoing']),
+                    'registration_deadline' => fake()->dateTimeBetween('now', '+2 months'),
+                    'created_by' => $orgAdmin->id,
+                ]);
+            }
 
-            //     // Create sample documents for each organization
-            //     for ($i = 1; $i <= rand(2, 6); $i++) {
-            //         Document::create([
-            //             'organization_id' => $org->id,
-            //             'title' => fake()->sentence(3),
-            //             'description' => fake()->paragraph(),
-            //             'file_name' => fake()->word() . '.pdf',
-            //             'file_path' => 'documents/' . $org->acronym . '/' . fake()->word() . '.pdf',
-            //             'file_size' => rand(100000, 5000000), // 100KB to 5MB
-            //             'file_type' => 'pdf',
-            //             'category' => fake()->randomElement(['Proposal', 'Laporan', 'Surat', 'Dokumen']),
-            //             'status' => fake()->randomElement(['published', 'draft']),
-            //             'uploaded_by' => $admin->id,
-            //         ]);
-            //     }
+            // Create sample documents for each organization
+            for ($i = 1; $i <= rand(2, 6); $i++) {
+                Document::create([
+                    'organization_id' => $org->id,
+                    'title' => fake()->sentence(3),
+                    'description' => fake()->paragraph(),
+                    'file_name' => fake()->word() . '.pdf',
+                    'file_path' => 'documents/' . $org->acronym . '/' . fake()->word() . '.pdf',
+                    'file_size' => rand(100000, 5000000), // 100KB to 5MB
+                    'file_type' => 'pdf',
+                    'category' => fake()->randomElement(['Proposal', 'Laporan', 'Surat', 'Dokumen']),
+                    'status' => fake()->randomElement(['published', 'draft']),
+                    'uploaded_by' => $orgAdmin->id,
+                ]);
+            }
 
-            //     // Create sample announcements
-            //     for ($i = 1; $i <= rand(1, 3); $i++) {
-            //         Announcement::create([
-            //             'organization_id' => $org->id,
-            //             'title' => fake()->sentence(5),
-            //             'content' => fake()->paragraphs(3, true),
-            //             'type' => fake()->randomElement(['general', 'event', 'urgent']),
-            //             'target_audience' => 'all',
-            //             'status' => 'published',
-            //             'publish_date' => fake()->dateTimeBetween('-1 week', 'now'),
-            //             'expire_date' => fake()->dateTimeBetween('+1 week', '+1 month'),
-            //             'created_by' => $admin->id,
-            //         ]);
-            //     }
-            // }
+            // Create sample announcements
+            for ($i = 1; $i <= rand(1, 3); $i++) {
+                Announcement::create([
+                    'organization_id' => $org->id,
+                    'title' => fake()->sentence(5),
+                    'content' => fake()->paragraphs(3, true),
+                    'type' => fake()->randomElement(['general', 'event', 'urgent']),
+                    'target_audience' => 'all',
+                    'status' => 'published',
+                    'publish_date' => fake()->dateTimeBetween('-1 week', 'now'),
+                    'expire_date' => fake()->dateTimeBetween('+1 week', '+1 month'),
+                    'created_by' => $orgAdmin->id,
+                ]);
+            }
+        }
 
-            // // Create some general announcements (not tied to specific organization)
-            // for ($i = 1; $i <= 3; $i++) {
-            //     Announcement::create([
-            //         'organization_id' => null,
-            //         'title' => 'Pengumuman Umum: ' . fake()->sentence(4),
-            //         'content' => fake()->paragraphs(2, true),
-            //         'type' => 'general',
-            //         'target_audience' => 'all',
-            //         'status' => 'published',
-            //         'publish_date' => fake()->dateTimeBetween('-3 days', 'now'),
-            //         'expire_date' => fake()->dateTimeBetween('+1 week', '+1 month'),
-            //         'created_by' => $admin->id,
-            //     ]);
-            // }
+        // Create some global announcements (by admin)
+        for ($i = 1; $i <= 3; $i++) {
+            Announcement::create([
+                'organization_id' => null,
+                'title' => 'Pengumuman Sistem: ' . fake()->sentence(4),
+                'content' => fake()->paragraphs(2, true),
+                'type' => 'general',
+                'target_audience' => 'all',
+                'status' => 'published',
+                'publish_date' => fake()->dateTimeBetween('-3 days', 'now'),
+                'expire_date' => fake()->dateTimeBetween('+1 week', '+1 month'),
+                'created_by' => $admin->id,
+            ]);
         }
     }
 }
